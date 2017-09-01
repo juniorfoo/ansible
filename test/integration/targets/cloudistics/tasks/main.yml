@@ -7,7 +7,7 @@
 # stop app
 # restart app
 # pause app
-# remove app
+# resume app
 # remove app
 
 # __ec2-common__
@@ -92,6 +92,24 @@
           - 'result.completed'
           - 'result.status == "Completed"'
 
+
+    # ============================================================
+    # start application
+
+    - name: Start application
+      cl_app_action:
+        name: "{{ tag_prefix }}"
+        action: start
+        wait: True
+        wait_timeout: 300
+
+    - assert:
+        that:
+          - 'result.changed'
+          - 'result.completed'
+          - 'result.status == "Completed"'
+
+
     # ============================================================
     # restart application
 
@@ -107,6 +125,41 @@
           - 'result.changed'
           - 'result.completed'
           - 'result.status == "Completed"'
+
+
+    # ============================================================
+    # pause application
+
+    - name: Pause application
+      cl_app_action:
+        name: "{{ tag_prefix }}"
+        action: pause
+        wait: True
+        wait_timeout: 300
+
+    - assert:
+        that:
+          - 'result.changed'
+          - 'result.completed'
+          - 'result.status == "Completed"'
+
+
+    # ============================================================
+    # resume application
+
+    - name: Resume application
+      cl_app_action:
+        name: "{{ tag_prefix }}"
+        action: resume
+        wait: True
+        wait_timeout: 300
+
+    - assert:
+        that:
+          - 'result.changed'
+          - 'result.completed'
+          - 'result.status == "Completed"'
+
 
   always:
 
