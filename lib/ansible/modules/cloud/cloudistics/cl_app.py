@@ -63,9 +63,9 @@ options:
       - Name of the flash pool to create this application with
     required: true
     default: null
-  network_names:
+  nics:
     description:
-      - Network or list of networks to be provided to the application
+      - List of nics for this application (see example) 
     required: true
     default: null
   state:
@@ -96,7 +96,11 @@ EXAMPLES = '''
       data_center_name: DC2
       migration_zone_name: MZ1
       flash_pool_name: SP1
-      network_names: Vnet1
+      nics: 
+        - name: 'vNIC 0'
+          vnet_name: Vnet1
+          type: 'Virtual Networking'
+          firewall_name: 'allow all'
       tag_names:
         - TT1
         - TT2
@@ -118,7 +122,6 @@ EXAMPLES = '''
       data_center_name: "{{ item.data_center_name }}"
       migration_zone_name: "{{ item.migration_zone_name }}"
       flash_pool_name: "{{ item.flash_pool_name }}"
-      network_names: "{{ item.network_names }}"
       tag_names: "{{ item.tag_names }}"
       wait: "{{ item.wait }}"
     with_items:
@@ -131,7 +134,11 @@ EXAMPLES = '''
         data_center_name: DC2
         migration_zone_name: MZ1
         flash_pool_name: SP1
-        network_names: Vnet1
+        nics: 
+          - name: 'vNIC 0'
+            vnet_name: Vnet1
+            type: 'Virtual Networking'
+            firewall_name: 'allow all'
         tag_names:
           - TT1
           - TT2
@@ -145,7 +152,11 @@ EXAMPLES = '''
         data_center_name: DC2
         migration_zone_name: MZ1
         flash_pool_name: SP1
-        network_names: Vnet1
+        nics: 
+          - name: 'vNIC 0'
+            vnet_name: Vnet1
+            type: 'Virtual Networking'
+            firewall_name: 'allow all'
         tag_names:
           - TT1
           - TT2
@@ -159,7 +170,11 @@ EXAMPLES = '''
         data_center_name: DC2
         migration_zone_name: MZ1
         flash_pool_name: SP1
-        network_names: Vnet1
+        nics: 
+          - name: 'vNIC 0'
+            vnet_name: Vnet1
+            type: 'Virtual Networking'
+            firewall_name: 'allow all'
         tag_names:
           - TT1
           - TT2
@@ -197,6 +212,23 @@ CPU_SIZES = [1, 2, 4, 8, 16, 32, 56]
 MEMORY_SIZES = [1024, 2048, 4096, 6144, 8192, 12288, 16384, 32768, 49152, 65536, 131072, 247808]
 
 
+def _nic_as_tuple(nic):
+    """Formats nic as a 4-tuple, in the order specified by the Cloudistics API"""
+    # N.B. string manipulations on protocols below (str(), upper()) is to
+    # ensure format matches output from ELB API
+    nic_list = [
+        str(nic['name']),
+        str(nic['type']),
+    ]
+
+    # If Virtual Networking, vnet is required, fw name is optional.
+    if nic['type'] in ['Virtual Networking']:
+        nic_list.append(str(nic['vnet_name']))
+        nic_list.append(str(nic['firewall_name']))
+
+    return tuple(nic_list)
+
+
 def main():
     argument_spec = cloudistics_full_argument_spec(
         state=dict(required='present', choices=STATES),
@@ -208,7 +240,7 @@ def main():
         data_center_name=dict(),
         migration_zone_name=dict(),
         flash_pool_name=dict(),
-        network_names=dict(type='list'),
+        nics=dict(default=None, type='list'),
         tag_names=dict(type='list'),
     )
 
@@ -223,7 +255,7 @@ def main():
             [
                 ['state', 'absent', ['name']],
                 ['state', 'present', ['name', 'template_name', 'category_name', 'data_center_name',
-                                      'migration_zone_name', 'flash_pool_name', 'network_names']],
+                                      'migration_zone_name', 'flash_pool_name', 'nics']],
             ]
         ),
 
@@ -268,6 +300,9 @@ def main():
                 instance = cloudistics_lookup_by_name(app_mgr, name)
 
         elif state == 'present' and not instance:
+            # nics = [_nic_as_tuple(l) for l in a_module.params['nics']]
+            nics = a_module.params['nics']
+
             res_action = app_mgr.create_instance(
                 name=a_module.params.get('name'),
                 description=a_module.params.get('description'),
@@ -278,8 +313,7 @@ def main():
                 data_center_name=a_module.params.get('data_center_name'),
                 migration_zone_name=a_module.params.get('migration_zone_name'),
                 flash_pool_name=a_module.params.get('flash_pool_name'),
-                network_names=a_module.params.get('network_names'),
-                tag_names=a_module.params.get('tag_names'),
+                nics=nics,
             )
             if res_action:
                 changed = True

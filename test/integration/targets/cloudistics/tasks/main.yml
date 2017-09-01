@@ -26,7 +26,7 @@
         data_center_name: "{{ cldstcs_data_center_name }}"
         migration_zone_name: "{{ cldstcs_migration_zone_name }}"
         flash_pool_name: "{{ cldstcs_flash_pool_name }}"
-        network_names: "{{ cldstcs_network_names }}"
+        nics: "{{ cldstcs_nics }}"
         tag_names: "{{ cldstcs_tag_names }}"
         wait: True
         state: present

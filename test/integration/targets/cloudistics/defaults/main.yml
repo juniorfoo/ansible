@@ -10,8 +10,11 @@ cldstcs_category_name: Default
 cldstcs_data_center_name: DC2
 cldstcs_migration_zone_name: MZ1
 cldstcs_flash_pool_name: SP1
-cldstcs_network_names:
-  - Vnet1
+cldstcs_nics:
+  - name: 'vNIC 0'
+    vnet_name: Vnet1
+    type: 'Virtual Networking'
+    firewall_name: 'allow all'
 cldstcs_tag_names:
   - TT1
   - TT2
