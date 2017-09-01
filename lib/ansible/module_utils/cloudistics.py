@@ -61,9 +61,10 @@ def cloudistics_module_kwargs(**kwargs):
 def cloudistics_wait_for_action(manager, wait_time, action):
     status = None
     completed = False
+
     try:
-        instance = manager.wait_for_done(action['actionUuid'], wait_time, 2)
-        status = instance['status']
+        ret_action = manager.wait_for_done(action['actionUuid'], wait_time, 2)
+        status = ret_action['status']
 
         if status == 'Completed':
             completed = True
@@ -76,3 +77,22 @@ def cloudistics_wait_for_action(manager, wait_time, action):
         # raise
 
     return completed, status
+
+
+def cloudistics_wait_for_running(manager, wait_time, uuid):
+    status = None
+    completed = False
+    app = None
+
+    try:
+        app = manager.wait_for_running(uuid, wait_time, 2)
+        status = app['status']
+
+        if status == 'Running':
+            completed = True
+        else:
+            completed = False
+    except:
+        pass
+
+    return completed, status, app

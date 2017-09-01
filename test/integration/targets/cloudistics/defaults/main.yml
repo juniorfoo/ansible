@@ -1,6 +1,7 @@
 ---
 # defaults file for test_cloudistics
-tag_prefix: 'ansible-testing-'
+#tag_prefix: 'ansible-testing-'
+tag_prefix: 'testing-'
 cldstcs_description: 'Test Description'
 cldstcs_vcpus: 1
 cldstcs_memory: 1073741824

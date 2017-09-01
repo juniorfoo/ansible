@@ -4,19 +4,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-try:
-    import cloudistics
-    from cloudistics import ActionsManager, ApplicationsManager, exceptions
-
-    HAS_CL = True
-except ImportError as e:
-    HAS_CL = False
-
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.cloudistics import cloudistics_full_argument_spec
-from ansible.module_utils.cloudistics import cloudistics_lookup_by_name
-from ansible.module_utils.cloudistics import cloudistics_wait_for_action
-
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1', 'status': ['preview'], 'supported_by': 'community'}
@@ -29,13 +16,13 @@ ANSIBLE_METADATA = {'metadata_version': '1.1', 'status': ['preview'], 'supported
 DOCUMENTATION = '''
 ---
 module: cl_app_action
-Perform actions on Applications from Cloudistics
+short_description: Perform actions on Applications from Cloudistics
 extends_documentation_fragment: cloudistics
 version_added: "2.4"
 author: "Joe Cavanaugh (@juniorfoo)"
 description:
    - Perform application actions on an existing applications from Cloudistics.
-     This module does not return any data other than changed true/false and 
+     This module does not return any data other than changed true/false and
      completed true/false
 options:
   action:
@@ -48,7 +35,6 @@ options:
 requirements:
     - "python >= 2.6"
     - "cloudistics >= 0.0.1"
-author: "Joe Cavanaugh (@juniorfoo)"
 '''
 
 EXAMPLES = '''
@@ -63,6 +49,20 @@ EXAMPLES = '''
       server: vm1
       timeout: 200
 '''
+
+try:
+    import cloudistics
+    from cloudistics import ActionsManager, ApplicationsManager, exceptions
+
+    HAS_CL = True
+except ImportError as e:
+    HAS_CL = False
+
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.cloudistics import cloudistics_full_argument_spec
+from ansible.module_utils.cloudistics import cloudistics_lookup_by_name
+from ansible.module_utils.cloudistics import cloudistics_wait_for_action
+from ansible.module_utils.cloudistics import cloudistics_wait_for_running
 
 # TODO: get this info from API
 ACTIONS = ['stop', 'start', 'restart', 'pause', 'resume']
@@ -119,6 +119,7 @@ def main():
     completed = False
     status = None
     res_action = None
+    running = None
 
     if not HAS_CL:
         a_module.fail_json(msg='Cloudistics python library required for this module')
@@ -140,24 +141,32 @@ def main():
         #
         # Do the actions requested and just set our variables, return will happen later
         #
+        instance_id = instance['uuid']
 
         if action == 'pause':
-            res_action = app_mgr.suspend_instance(instance['uuid'])
+            res_action = app_mgr.suspend_instance(instance_id)
         elif action == 'restart':
-            res_action = app_mgr.restart_instance(instance['uuid'])
+            res_action = app_mgr.restart_instance(instance_id)
         elif action == 'resume':
-            res_action = app_mgr.resume_instance(instance['uuid'])
+            res_action = app_mgr.resume_instance(instance_id)
         elif action == 'start':
-            res_action = app_mgr.start_instance(instance['uuid'])
+            res_action = app_mgr.start_instance(instance_id)
         elif action == 'stop':
-            res_action = app_mgr.stop_instance(instance['uuid'])
+            res_action = app_mgr.stop_instance(instance_id)
 
         if res_action and wait:
             (completed, status) = cloudistics_wait_for_action(act_mgr, wait_timeout, res_action)
+            if completed and action in ['restart', 'resume', 'start']:
+                (completed, running, app) = cloudistics_wait_for_running(app_mgr,
+                                                                         wait_timeout,
+                                                                         instance_id)
+
+        # Get an updated version of the instance
+        instance = app_mgr.get_instance(instance['uuid'])
 
         # a_module.exit_json(changed=changed, completed=completed, status=status,
         #                    res_action=res_action, wait=wait)
-        a_module.exit_json(changed=changed, completed=completed, status=status)
+        a_module.exit_json(changed=changed, completed=completed, status=status, instance=instance)
 
     except exceptions.CloudisticsAPIError as e:
         a_module.fail_json(msg=e.message)

@@ -4,21 +4,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import json
-
-try:
-    import cloudistics
-    from cloudistics import ActionsManager, ApplicationsManager, exceptions
-
-    HAS_CL = True
-except ImportError:
-    HAS_CL = False
-
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.cloudistics import cloudistics_full_argument_spec
-from ansible.module_utils.cloudistics import cloudistics_lookup_by_name
-from ansible.module_utils.cloudistics import cloudistics_wait_for_action
-
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1', 'status': ['preview'], 'supported_by': 'community'}
@@ -47,7 +32,7 @@ options:
     description:
       - Amount of memory to be assigned to the new application
     required: false
-    default: null    
+    default: null
   tags:
     description:
       - Tag or list of tags to be provided to the application
@@ -93,7 +78,6 @@ options:
 requirements:
     - "python >= 2.6"
     - "cloudistics >= 0.0.1"
-author: "Joe Cavanaugh (@juniorfoo)"
 '''
 
 EXAMPLES = '''
@@ -113,9 +97,9 @@ EXAMPLES = '''
       migration_zone_name: MZ1
       flash_pool_name: SP1
       network_names: Vnet1
-      tag_names: 
+      tag_names:
         - TT1
-        - TT2    
+        - TT2
       wait: False
       state: present
 
@@ -150,7 +134,7 @@ EXAMPLES = '''
         network_names: Vnet1
         tag_names:
           - TT1
-          - TT2    
+          - TT2
         wait: True
       - name: xx2
         description: xx
@@ -164,7 +148,7 @@ EXAMPLES = '''
         network_names: Vnet1
         tag_names:
           - TT1
-          - TT2    
+          - TT2
         wait: True
       - name: xx3
         description: xx
@@ -178,7 +162,7 @@ EXAMPLES = '''
         network_names: Vnet1
         tag_names:
           - TT1
-          - TT2    
+          - TT2
         wait: True
 
 - name: Cancel instances
@@ -191,22 +175,26 @@ EXAMPLES = '''
       name: xx1
 '''
 
+# from __future__ import absolute_import, division, print_function
+
+import json
+
+try:
+    import cloudistics
+    from cloudistics import ActionsManager, ApplicationsManager, exceptions
+
+    HAS_CL = True
+except ImportError:
+    HAS_CL = False
+
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.cloudistics import cloudistics_full_argument_spec
+from ansible.module_utils.cloudistics import cloudistics_lookup_by_name
+from ansible.module_utils.cloudistics import cloudistics_wait_for_action
+
 STATES = ['present', 'absent']
 CPU_SIZES = [1, 2, 4, 8, 16, 32, 56]
 MEMORY_SIZES = [1024, 2048, 4096, 6144, 8192, 12288, 16384, 32768, 49152, 65536, 131072, 247808]
-
-
-def wait_for_running(manager, wait_time, uuid):
-    instance = None
-
-    try:
-        completed = manager.wait_for_running(uuid, wait_time, 2)
-        if completed:
-            instance = manager.get_instance(uuid)
-    except exceptions.CloudisticsAPIError:
-        completed = False
-
-    return completed, instance
 
 
 def main():
@@ -272,18 +260,14 @@ def main():
         if state == 'absent' and instance:
             res_action = app_mgr.delete_instance(instance['uuid'])
             if res_action:
+                changed = True
                 if wait:
                     (completed, status) = cloudistics_wait_for_action(act_mgr,
                                                                       wait_timeout,
                                                                       res_action)
                 instance = cloudistics_lookup_by_name(app_mgr, name)
-                changed = True
 
         elif state == 'present' and not instance:
-            # tags = a_module.params.get('tags')
-            # if isinstance(tags, list):
-            #     tags = ','.join(map(str, tags))
-
             res_action = app_mgr.create_instance(
                 name=a_module.params.get('name'),
                 description=a_module.params.get('description'),
@@ -298,12 +282,13 @@ def main():
                 tag_names=a_module.params.get('tag_names'),
             )
             if res_action:
+                changed = True
                 if wait:
                     (completed, status) = cloudistics_wait_for_action(act_mgr,
                                                                       wait_timeout,
                                                                       res_action)
-                instance = cloudistics_lookup_by_name(app_mgr, name)
-                changed = True
+                instance = app_mgr.get_instance(res_action['objectUuid'])
+                # instance = cloudistics_lookup_by_name(app_mgr, name)
 
         a_module.exit_json(changed=changed,
                            completed=completed,

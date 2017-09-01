@@ -10,17 +10,6 @@
 # resume app
 # remove app
 
-# __ec2-common__
-# test environment variable EC2_REGION
-# test with no parameters
-# test with only instance_id
-# test invalid region parameter
-# test valid region parameter
-# test invalid ec2_url parameter
-# test valid ec2_url parameter
-# test credentials from environment
-# test credential parameters
-
 - block:
 
     # ============================================================
@@ -68,12 +57,14 @@
         action: start
         wait: True
         wait_timeout: 300
+      register: result
 
     - assert:
         that:
           - 'result.changed'
           - 'result.completed'
           - 'result.status == "Completed"'
+          - 'result.instance.status == "Running"'
 
 
     # ============================================================
@@ -85,12 +76,14 @@
         action: stop
         wait: True
         wait_timeout: 300
+      register: result
 
     - assert:
         that:
           - 'result.changed'
           - 'result.completed'
           - 'result.status == "Completed"'
+          - 'result.instance.status == "Shut down"'
 
 
     # ============================================================
@@ -102,12 +95,21 @@
         action: start
         wait: True
         wait_timeout: 300
+      register: result
 
     - assert:
         that:
           - 'result.changed'
           - 'result.completed'
           - 'result.status == "Completed"'
+          - 'result.instance.status == "Running"'
+
+
+    # ============================================================
+    # pause for 30 seconds to allow the guest agent to be installed
+    - pause:
+        prompt: 'Make sure the guest agent is running before continuing'
+        minutes: 5
 
 
     # ============================================================
@@ -119,12 +121,14 @@
         action: restart
         wait: True
         wait_timeout: 300
+      register: result
 
     - assert:
         that:
           - 'result.changed'
           - 'result.completed'
           - 'result.status == "Completed"'
+          - 'result.instance.status == "Running"'
 
 
     # ============================================================
@@ -136,12 +140,14 @@
         action: pause
         wait: True
         wait_timeout: 300
+      register: result
 
     - assert:
         that:
           - 'result.changed'
           - 'result.completed'
           - 'result.status == "Completed"'
+          - 'result.instance.status == "Paused"'
 
 
     # ============================================================
@@ -153,12 +159,14 @@
         action: resume
         wait: True
         wait_timeout: 300
+      register: result
 
     - assert:
         that:
           - 'result.changed'
           - 'result.completed'
           - 'result.status == "Completed"'
+          - 'result.instance.status == "Running"'
 
 
   always:
