@@ -1,0 +1,17 @@
+---
+# defaults file for test_cloudistics
+tag_prefix: 'ansible-testing-'
+cldstcs_description: 'Test Description'
+cldstcs_vcpus: 1
+cldstcs_memory: 1073741824
+cldstcs_template_name: 'World Community Grid'
+cldstcs_category_name: Default
+cldstcs_data_center_name: DC2
+cldstcs_migration_zone_name: MZ1
+cldstcs_flash_pool_name: SP1
+cldstcs_network_names:
+  - Vnet1
+cldstcs_tag_names:
+  - TT1
+  - TT2
+

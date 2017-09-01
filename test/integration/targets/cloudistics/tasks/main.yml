@@ -1,0 +1,126 @@
+---
+# __Test Outline__
+#
+# __cloudistics__
+# create test application
+# start app
+# stop app
+# restart app
+# pause app
+# remove app
+# remove app
+
+# __ec2-common__
+# test environment variable EC2_REGION
+# test with no parameters
+# test with only instance_id
+# test invalid region parameter
+# test valid region parameter
+# test invalid ec2_url parameter
+# test valid ec2_url parameter
+# test credentials from environment
+# test credential parameters
+
+- block:
+
+    # ============================================================
+    # create test application
+
+    - name: Create application
+      cl_app:
+        name: "{{ tag_prefix }}"
+        description: "{{ cldstcs_description }}"
+        vcpus: "{{ cldstcs_vcpus }}"
+        memory: "{{ cldstcs_memory }}"
+        template_name: "{{ cldstcs_template_name }}"
+        category_name: "{{ cldstcs_category_name }}"
+        data_center_name: "{{ cldstcs_data_center_name }}"
+        migration_zone_name: "{{ cldstcs_migration_zone_name }}"
+        flash_pool_name: "{{ cldstcs_flash_pool_name }}"
+        network_names: "{{ cldstcs_network_names }}"
+        tag_names: "{{ cldstcs_tag_names }}"
+        wait: True
+        state: present
+      register: result
+
+    - assert:
+        that:
+          - 'result.changed'
+          - 'result.instance.status == "Shut down"'
+          - 'result.instance.name == "{{ tag_prefix }}"'
+          - 'result.instance.description == "{{ cldstcs_description }}"'
+          - 'result.instance.vcpus == {{ cldstcs_vcpus }}'
+          - 'result.instance.memory == {{ cldstcs_memory }}'
+          # We don't get the names back
+          # - 'result.instance.template_name == "{{ cldstcs_template_name }}"'
+          # - 'result.instance.category_name == "{{ cldstcs_category_name }}"'
+          # - 'result.instance.data_center_name == "{{ cldstcs_data_center_name }}"'
+          # - 'result.instance.migration_zone_name == "{{ cldstcs_migration_zone_name }}"'
+          # - 'result.instance.flash_pool_name == "{{ cldstcs_flash_pool_name }}"'
+
+
+    # ============================================================
+    # start application
+
+    - name: Start application
+      cl_app_action:
+        name: "{{ tag_prefix }}"
+        action: start
+        wait: True
+        wait_timeout: 300
+
+    - assert:
+        that:
+          - 'result.changed'
+          - 'result.completed'
+          - 'result.status == "Completed"'
+
+
+    # ============================================================
+    # stop application
+
+    - name: Stop application
+      cl_app_action:
+        name: "{{ tag_prefix }}"
+        action: stop
+        wait: True
+        wait_timeout: 300
+
+    - assert:
+        that:
+          - 'result.changed'
+          - 'result.completed'
+          - 'result.status == "Completed"'
+
+    # ============================================================
+    # restart application
+
+    - name: Restart application
+      cl_app_action:
+        name: "{{ tag_prefix }}"
+        action: restart
+        wait: True
+        wait_timeout: 300
+
+    - assert:
+        that:
+          - 'result.changed'
+          - 'result.completed'
+          - 'result.status == "Completed"'
+
+  always:
+
+    # ============================================================
+    - name: remove the test application completely
+      cl_app:
+        name: "{{ tag_prefix }}"
+        state: absent
+      register: result
+
+    - name: assert the application was removed
+      assert:
+        that:
+          - 'result.changed'
+          - 'result.completed'
+          - 'result.status == "Completed"'
+
