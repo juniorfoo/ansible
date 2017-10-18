@@ -106,7 +106,7 @@
 
 
     # ============================================================
-    # pause for 30 seconds to allow the guest agent to be installed
+    # pause for 5 minutes to allow the guest agent to be installed
     - pause:
         prompt: 'Make sure the guest agent is running before continuing'
         minutes: 5

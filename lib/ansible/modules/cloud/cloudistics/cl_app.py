@@ -65,7 +65,7 @@ options:
     default: null
   nics:
     description:
-      - List of nics for this application (see example) 
+      - List of nics for this application (see example)
     required: true
     default: null
   state:
@@ -76,7 +76,7 @@ options:
     choices: ['present', 'absent']
 
 requirements:
-    - "python >= 2.6"
+    - "python >= 2.7"
     - "cloudistics >= 0.0.1"
 '''
 
@@ -96,7 +96,7 @@ EXAMPLES = '''
       data_center_name: DC2
       migration_zone_name: MZ1
       flash_pool_name: SP1
-      nics: 
+      nics:
         - name: 'vNIC 0'
           vnet_name: Vnet1
           type: 'Virtual Networking'
@@ -134,7 +134,7 @@ EXAMPLES = '''
         data_center_name: DC2
         migration_zone_name: MZ1
         flash_pool_name: SP1
-        nics: 
+        nics:
           - name: 'vNIC 0'
             vnet_name: Vnet1
             type: 'Virtual Networking'
@@ -152,7 +152,7 @@ EXAMPLES = '''
         data_center_name: DC2
         migration_zone_name: MZ1
         flash_pool_name: SP1
-        nics: 
+        nics:
           - name: 'vNIC 0'
             vnet_name: Vnet1
             type: 'Virtual Networking'
@@ -170,7 +170,7 @@ EXAMPLES = '''
         data_center_name: DC2
         migration_zone_name: MZ1
         flash_pool_name: SP1
-        nics: 
+        nics:
           - name: 'vNIC 0'
             vnet_name: Vnet1
             type: 'Virtual Networking'
@@ -294,9 +294,7 @@ def main():
             if res_action:
                 changed = True
                 if wait:
-                    (completed, status) = cloudistics_wait_for_action(act_mgr,
-                                                                      wait_timeout,
-                                                                      res_action)
+                    (completed, status) = cloudistics_wait_for_action(act_mgr, wait_timeout, res_action)
                 instance = cloudistics_lookup_by_name(app_mgr, name)
 
         elif state == 'present' and not instance:
@@ -318,9 +316,7 @@ def main():
             if res_action:
                 changed = True
                 if wait:
-                    (completed, status) = cloudistics_wait_for_action(act_mgr,
-                                                                      wait_timeout,
-                                                                      res_action)
+                    (completed, status) = cloudistics_wait_for_action(act_mgr, wait_timeout, res_action)
                 instance = app_mgr.get_instance(res_action['objectUuid'])
                 # instance = cloudistics_lookup_by_name(app_mgr, name)
 

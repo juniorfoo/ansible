@@ -45,8 +45,8 @@ $ ansible_python_interpreter=`which python` -a "name='xx 1' action=stop"
 * `ansible-test sanity --test ansible-doc --python 2.7 cl_app_action`
 
 ### Pep8 Tests
-* `ansible-test sanity --test ansible-doc --python 2.7 cl_app`
-* `ansible-test sanity --test ansible-doc --python 2.7 cl_app_action`
+* `ansible-test sanity --test pep8 --python 2.7 cl_app`
+* `ansible-test sanity --test pep8 --python 2.7 cl_app_action`
 
 ### Integration Tests
 * `ansible-test integration -v cloudistics`

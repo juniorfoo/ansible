@@ -21,19 +21,18 @@ extends_documentation_fragment: cloudistics
 version_added: "2.4"
 author: "Joe Cavanaugh (@juniorfoo)"
 description:
-   - Perform application actions on an existing applications from Cloudistics.
+   - Perform application actions on an existing applicatios from Cloudistics.
      This module does not return any data other than changed true/false and
      completed true/false
 options:
   action:
     description:
       - Perform the given action.
-    required: false
-    default: 'present'
+    required: true
     choices: [stop, start, restart, pause, resume]
 
 requirements:
-    - "python >= 2.6"
+    - "python >= 2.7"
     - "cloudistics >= 0.0.1"
 '''
 
@@ -41,13 +40,9 @@ EXAMPLES = '''
 # Suspend an application
 - cl_app_action:
       action: pause
-      auth:
-        auth_url: https://mycloud.openstack.blueboxgrid.com:5001/v2.0
-        username: admin
-        password: admin
-        project_name: admin
-      server: vm1
-      timeout: 200
+      name: test_name
+      wait: True
+      wait_timeout: 300
 '''
 
 try:
@@ -94,13 +89,11 @@ def main():
 
         required_if=(
             [
-                ['state', 'absent', ['name']],
-                ['state', 'present', ['name', 'template_name', 'category_name', 'data_center_name',
-                                      'migration_zone_name', 'flash_pool_name', 'network_names']],
-                ['state', 'resumed', ['name']],
-                ['state', 'started', ['name']],
-                ['state', 'stopped', ['name']],
-                ['state', 'suspended', ['name']],
+                ['action', 'pause', ['name']],
+                ['action', 'restart', ['name']],
+                ['action', 'resume', ['name']],
+                ['action', 'start', ['name']],
+                ['action', 'stop', ['name']],
             ]
         ),
 
@@ -157,9 +150,7 @@ def main():
         if res_action and wait:
             (completed, status) = cloudistics_wait_for_action(act_mgr, wait_timeout, res_action)
             if completed and action in ['restart', 'resume', 'start']:
-                (completed, running, app) = cloudistics_wait_for_running(app_mgr,
-                                                                         wait_timeout,
-                                                                         instance_id)
+                (completed, running, app) = cloudistics_wait_for_running(app_mgr, wait_timeout, instance_id)
 
         # Get an updated version of the instance
         instance = app_mgr.get_instance(instance['uuid'])

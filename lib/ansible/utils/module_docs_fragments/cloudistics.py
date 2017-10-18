@@ -38,11 +38,11 @@ requirements:
   - python >= 2.7
   - cloudistics >= 0.0.1
 notes:
-  - Authentication parameters such as API_KEY and ENDPOINT_URL are not allowed in
+  - Authentication parameters such as API_KEY and ENDPOINT_* are not allowed in
     playbooks for security reasons. Please use `ccli setup` to create a configuration
     file.
-  - Auth information is driven by the cloudistics python library, which means that 
+  - Auth information is driven by the Cloudistics python library, which means that 
     values can come from an ini config file in /etc/cloudistics.conf or ~/.cloudistics,
     then finally from standard environment variables. More information can be found at
-    U(https://cloudistics-api-python-client.readthedocs.io)
+    U(https://http://cloudistics-python.readthedocs.org)
 '''
